@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+
+{% block headtitle %}
+    Test table page
+{% endblock %}
+
+{% block body %}
+    <form action="{{ url_for('show_games') }}" id="param_select" method="GET">
+
+        <div class="form_group">
+            <label>Number of games to show:</label><br>
+            <input required name="num_games"
+                   type="number" min="1" step="1"
+                   placeholder="Number of games"
+                   onfocus="this.placeholder=''"
+                   onblur="this.placeholder='Number of games'">
+        </div>
+
+        <label for="sort">Parameter to sort:</label><br>
+        <select id="sort" name="sort" form="param_select">
+            <option selected="selected" value="rank">Boardgame rank</option>
+            <option value="title">Title</option>
+            <option value="bggrating">Geek rating</option>
+            <option value="avgrating">Avg rating</option>
+            <option value="numvoters">Num voters</option>
+        </select><br>
+
+        <label for="sort_dir">Sort direction:</label><br>
+        <select id="sort_dir" name="sort_dir" form="param_select">
+            <option selected="selected" value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select><br>
+
+        <input type="submit">
+    </form><br>
+
+    Here will be table or something else {{ name }} <br>
+
+    <table>
+        <tr>
+        {% for elem in game_list_for_th %}
+            <th>{{ elem }}</th>
+        {% endfor %}
+        </tr>
+        {% for num, sub_dict in game_list.items() %}
+            <tr>
+                {% for key, value in sub_dict.items() %}
+                    <td>{{ '; '.join(value) }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <ol>
+    {% for value in param_1 %}
+        <li>
+            {{ ', '.join(value['yearpublished']) }},
+            {{ ', '.join(value['title']) }}
+        </li>
+    {% endfor %}
+    </ol>
+{% endblock %}
+
