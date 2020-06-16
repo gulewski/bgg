@@ -2,6 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 
 
+# получить lxml-soup-объект по url
+def get_soup_lxml(url):
+    response = requests.get(url)
+    return BeautifulSoup(response.text, features='lxml')
+
+
 def get_dict_with_all_games(num_games: int, sort: str = 'rank', sortdir: str ='asc'):
     #создание списка урлов по количеству игр и с сортировкой
     def create_url_list(num_games: int, sort: str = 'rank', sortdir: str ='asc'):

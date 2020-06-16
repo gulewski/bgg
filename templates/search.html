@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+
+{% block headtitle %}
+    Search games
+{% endblock %}
+
+{% block body %}
+    Here is your search table<br>
+    Search string: {{search_string}}<br>
+    {% if exact %}
+        Exact search: True
+    {% else %}
+        Exact search: False
+    {% endif %}
+    <br>
+    <a href="/">Request new table</a><br><br>
+
+    {# <table>
+        <tr>
+        {% for elem in game_list_for_th %}
+            <th>{{ elem }}</th>
+        {% endfor %}
+        </tr>
+        {% for num, sub_dict in game_list.items() %}
+            <tr>
+                {% for key, value in sub_dict.items() %}
+                    {% if value|length > show_first %}
+                        <td>
+                            {% for i in range(show_first) %}
+                                {{ value[i] + ';' }}<br>
+                            {% endfor %}
+                            <details>
+                                <summary>{{'+ ' + value[show_first - 1:]|length|string() + ' more' }}</summary>
+                                {% for elem in value[show_first:-1] %}
+                                    {{ elem }};<br>
+                                {% endfor %}
+                                {{ value[-1] }}
+                            </details>
+                        </td>
+                    {% else %}
+                        <td>
+                            {% for elem in value[:value|length-1] %}
+                                <a href="https://boardgamegeek.com/boardgame/174430/">
+                                {{ elem }};<br>
+                                </a>
+                            {% endfor %}
+                            <a href="https://boardgamegeek.com/boardgame/174430/">
+                            {{ value[-1] }}
+                            </a>
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <ol>
+    {% for value in param_1 %}
+        <li>
+            {{ ', '.join(value['yearpublished']) }},
+            {{ ', '.join(value['title']) }}
+        </li>
+    {% endfor %}
+    </ol> #}
+
+
+{% endblock %}
+

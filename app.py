@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request
 import functions as fn
 import random
+import json
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
-    return render_template("index.html", param_1={}, game_list={})
+    return render_template("index.html")
 
 
 @app.route("/show")
@@ -19,8 +21,23 @@ def show_games():
     index_for_th = random.choice(list(games_dict.keys()))
     game_list_for_th = games_dict[index_for_th].keys()
 
-    return render_template("index.html",
+    print(json.dumps(games_dict, indent=2, ensure_ascii=False))
+
+    return render_template("show.html",
                            param_1=list(games_dict.values()),
                            game_list_for_th=game_list_for_th,
-                           game_list=games_dict)
+                           game_list=games_dict,
+                           show_first=5,
+                           num_games=num_games,
+                           sort=sort,
+                           sort_dir=sort_dir)
 
+
+@app.route("/search")
+def search():
+    search_string = request.args.get("search_string")
+    exact = request.args.get("exact")
+
+    return render_template("search.html",
+                           search_string=search_string,
+                           exact=exact)

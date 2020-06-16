@@ -2,20 +2,18 @@
 
 
 {% block headtitle %}
-    Test table page
+    Request game list
 {% endblock %}
 
 {% block body %}
     <form action="{{ url_for('show_games') }}" id="param_select" method="GET">
 
-        <div class="form_group">
-            <label>Number of games to show:</label><br>
-            <input required name="num_games"
-                   type="number" min="1" step="1"
-                   placeholder="Number of games"
-                   onfocus="this.placeholder=''"
-                   onblur="this.placeholder='Number of games'">
-        </div>
+        <label>Number of games to show:</label><br>
+        <input required name="num_games"
+               type="number" min="1" step="1"
+               placeholder="Number of games"
+               onfocus="this.placeholder=''"
+               onblur="this.placeholder='Number of games'"><br>
 
         <label for="sort">Parameter to sort:</label><br>
         <select id="sort" name="sort" form="param_select">
@@ -35,30 +33,19 @@
         <input type="submit">
     </form><br>
 
-    Here will be table or something else {{ name }} <br>
+    <form action="{{ url_for('search') }}" id="search_param" method="GET">
 
-    <table>
-        <tr>
-        {% for elem in game_list_for_th %}
-            <th>{{ elem }}</th>
-        {% endfor %}
-        </tr>
-        {% for num, sub_dict in game_list.items() %}
-            <tr>
-                {% for key, value in sub_dict.items() %}
-                    <td>{{ '; '.join(value) }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
+        <label>Search:</label><br>
+        <input required name="search_string"
+               type="text"
+               placeholder="Search"
+               onfocus="this.placeholder=''"
+               onblur="this.placeholder='Search'"><br>
 
-    <ol>
-    {% for value in param_1 %}
-        <li>
-            {{ ', '.join(value['yearpublished']) }},
-            {{ ', '.join(value['title']) }}
-        </li>
-    {% endfor %}
-    </ol>
+        <label for="exact">Exact search</label>
+        <input type="checkbox" id="exact" name="exact" value="1"><br>
+
+        <input type="submit">
+    </form><br>
 {% endblock %}
 

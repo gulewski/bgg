@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+
+
+{% block headtitle %}
+    Show games table
+{% endblock %}
+
+{% block body %}
+    Here is your table with {{ num_games }} games, sorted {{ sort_dir }} by {{sort}}<br>
+    <a href="/">Request new table</a><br>
+
+    <ol id="gamelist">
+    {% for value in param_1 %}
+        <li>
+            {{ ', '.join(value['yearpublished']) }},
+            {{ ', '.join(value['title']) }},
+            <a href="#game{{param_1.index(value)}}">see in table</a>
+        </li>
+    {% endfor %}
+    </ol>
+
+    <table>
+        <tr>
+        {% for elem in game_list_for_th %}
+            <th>{{ elem }}</th>
+        {% endfor %}
+        </tr>
+        {% for num, sub_dict in game_list.items() %}
+            <tr id="game{{loop.index - 1}}">
+                {% for key, value in sub_dict.items() %}
+                    {% if value|length > show_first %}
+                        <td>
+                            {% for i in range(show_first) %}
+                                {{ value[i] + ';' }}<br>
+                            {% endfor %}
+                            <details class="more_info">
+                                <summary
+                                        data-open="close"
+                                        data-close="{{'show ' + value[show_first - 1:]|length|string() + ' more' }}">
+
+                                </summary>
+                                {% for elem in value[show_first:-1] %}
+                                    {{ elem }};<br>
+                                {% endfor %}
+                                {{ value[-1] }}
+                            </details>
+                        </td>
+                    {% else %}
+                        <td>
+                            {% for elem in value[:value|length-1] %}
+                                <a href="https://boardgamegeek.com/boardgame/{{num}}" target="_blank">
+                                {{ elem }};<br>
+                                </a>
+                            {% endfor %}
+                            <a href="https://boardgamegeek.com/boardgame/{{num}}" target="_blank">
+                            {{ value[-1] }}
+                            </a>
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <button onclick="topFunction()" id="myBtn" title="Go to top">Top</button>
+
+<script>
+    var mybutton = document.getElementById("myBtn");
+
+    window.onscroll = function() {scrollFunction()};
+
+    function scrollFunction() {
+      if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        mybutton.style.display = "block";
+      } else {
+        mybutton.style.display = "none";
+      }
+    }
+
+    function topFunction() {
+      document.body.scrollTop = 0;
+      document.body.scrollLeft = 0;
+      document.documentElement.scrollTop = 0;
+      document.documentElement.scrollLeft = 0;
+    }
+
+</script>
+{% endblock %}
+
