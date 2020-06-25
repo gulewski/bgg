@@ -10,12 +10,14 @@
     </ol>
 
     <table>
-        <tr>
-        {% for elem in game_list_for_th %}
-            <th>{{ elem }}</th>
-        {% endfor %}
-        </tr>
-
+        <thead>
+            <tr>
+            {% for elem in game_list_for_th %}
+                <th>{{ elem }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
         {% for game_id, game_data_dict in game_list.items() %}
             <tr id="game{{loop.index - 1}}">
                 {% for game_param, param_data in game_data_dict.items() %}
@@ -91,6 +93,7 @@
                 {% endfor %}
             </tr>
         {% endfor %}
+        </tbody>
     </table>
 {% else %}
     <p>No games found</p>
