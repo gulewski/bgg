@@ -43,14 +43,19 @@ def search():
         exact = 1
     games_dict = fn.get_games_info(search_string=search_string, exact=exact)
 
-    index_for_th = random.choice(list(games_dict.keys()))
-    game_list_for_th = games_dict[index_for_th].keys()
+    if games_dict:
+        index_for_th = random.choice(list(games_dict.keys()))
+        game_list_for_th = games_dict[index_for_th].keys()
+        all_games = list(games_dict.values())
+    else:
+        game_list_for_th = {}
+        all_games = []
 
     return render_template("search.html",
                            search_string=search_string,
                            exact=exact,
                            game_list=games_dict,
                            show_first=5,
-                           all_games=list(games_dict.values()),
+                           all_games=all_games,
                            game_list_for_th=game_list_for_th,
                            )
