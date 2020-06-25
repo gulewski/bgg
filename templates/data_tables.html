@@ -1,0 +1,93 @@
+<ol id="gamelist">
+    {% for value in all_games %}
+        <li>
+            {{ ', '.join(value['yearpublished']) }},
+            {{ ', '.join(value['title']) }},
+            <a href="#game{{all_games.index(value)}}">see in table</a>
+        </li>
+    {% endfor %}
+</ol>
+
+<table>
+    <tr>
+    {% for elem in game_list_for_th %}
+        <th>{{ elem }}</th>
+    {% endfor %}
+    </tr>
+
+    {% for game_id, game_data_dict in game_list.items() %}
+        <tr id="game{{loop.index - 1}}">
+            {% for game_param, param_data in game_data_dict.items() %}
+                {% if not param_data %}
+                    <td>
+                        N/A
+                    </td>
+                {% elif param_data[0] is mapping %}
+                    <td>
+                        {% if param_data|length > show_first %}
+                            {% for i in range(show_first) %}
+                                <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/">{{param_data[i]['name']}}</a>;<br>
+                            {% endfor %}
+                            <details class="more_info">
+                                <summary
+                                        data-open="close"
+                                        data-close="{{'show ' + param_data[show_first - 1:]|length|string() + ' more' }}">
+                                </summary>
+                                {% for i in range(show_first, param_data[:-1]|length) %}
+                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/">{{param_data[i]['name']}}</a>;<br>
+                                {% endfor %}
+                                <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[-1]['id']}}/">{{param_data[-1]['name']}}</a>;<br>
+                            </details>
+                        {% else %}
+                            {% for elem in param_data %}
+                                <a href="https://boardgamegeek.com/{{game_param}}/{{elem['id']}}/">{{elem['name']}}</a><br>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                {% else %}
+                    {% if param_data|length > show_first %}
+                        <td>
+                            {% for i in range(show_first) %}
+                                {{ param_data[i] + ';' }}<br>
+                            {% endfor %}
+                            <details class="more_info">
+                                <summary
+                                        data-open="close"
+                                        data-close="{{'show ' + param_data[show_first - 1:]|length|string() + ' more' }}">
+                                </summary>
+                                {% for elem in param_data[show_first:-1] %}
+                                    {{ elem }};<br>
+                                {% endfor %}
+                                {{ param_data[-1] }}
+                            </details>
+                        </td>
+                    {% else %}
+                        {% if game_param == 'title' %}
+                            <td>
+                                {% for elem in param_data[:param_data|length-1] %}
+                                    <a href="https://boardgamegeek.com/boardgame/{{game_id}}" target="_blank">
+                                    {{ elem }};<br>
+                                    </a>
+                                {% endfor %}
+                                    <a href="https://boardgamegeek.com/boardgame/{{game_id}}" target="_blank">
+                                {{ param_data[-1] }}
+                                </a>
+                            </td>
+                        {% elif game_param == 'thumbnail' %}
+                            <td>
+                                <img src="{{''.join(param_data)}}" alt="game image">
+                            </td>
+                        {% else %}
+                            <td>
+                                {% for elem in param_data[:param_data|length-1] %}
+                                    {{ elem }};<br>
+                                {% endfor %}
+                                {{ param_data[-1] }}
+                            </td>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>

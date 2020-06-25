@@ -10,7 +10,7 @@
 
         <label>Number of games to show:</label><br>
         <input required name="num_games"
-               type="number" min="1" step="1"
+               type="number" min="1" max="100" step="1"
                placeholder="Number of games"
                onfocus="this.placeholder=''"
                onblur="this.placeholder='Number of games'"><br>
@@ -43,7 +43,7 @@
                onblur="this.placeholder='Search'"><br>
 
         <label for="exact">Exact search</label>
-        <input type="checkbox" id="exact" name="exact" value="1"><br>
+        <input type="checkbox" id="exact" name="exact" value="0"><br>
 
         <input type="submit">
     </form><br>
