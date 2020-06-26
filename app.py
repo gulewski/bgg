@@ -5,6 +5,38 @@ import json
 
 app = Flask(__name__)
 
+aliases = {'rank': 'Game rank',
+           'title': 'Title',
+           # 'alt_titles': 'Alternative titles',
+           'thumbnail': 'Box image',
+           # 'image': 'Image',
+           'usersrated': 'Num voters',
+           'average': 'Avg rating',
+           'bayesaverage': 'BGG rating',
+           'yearpublished': 'Year',
+           'minplayers': 'MIN players',
+           'maxplayers': 'MAX players',
+           'minplaytime': 'MIN playtime',
+           'maxplaytime': 'MAX playtime',
+           'age': 'Age',
+           # 'description': 'Description',
+
+           'boardgamedesigner': 'Designers',
+           'boardgameartist': 'Artists',
+           'boardgamepublisher': 'Publishers',
+           'boardgamecategory': 'Categories',
+           'boardgamemechanic': 'Mechanics',
+           'boardgamefamily': 'Family',
+           'boardgamesubdomain': 'Subdomain',
+           'boardgameexpansion': 'Expansions',
+           'boardgameintegration': 'Integrations',
+
+           'boardgamepodcastepisode': 'Podcasts',
+           'boardgamehonor': 'Honors',
+           'boardgameversion': 'Versions',
+           # 'videogamebg': 'Videogame',
+           'boardgameaccessory': 'Accessories',
+    }
 
 @app.route("/")
 def index():
@@ -24,6 +56,7 @@ def show_games():
     # print(json.dumps(games_dict, indent=2, ensure_ascii=False))
 
     return render_template("show.html",
+                           aliases=aliases,
                            all_games=list(games_dict.values()),
                            game_list_for_th=game_list_for_th,
                            game_list=games_dict,
@@ -52,6 +85,7 @@ def search():
         all_games = list(games_dict.values())
 
     return render_template("search.html",
+                           aliases=aliases,
                            search_string=search_string,
                            exact=exact,
                            game_list=games_dict,
