@@ -1,12 +1,40 @@
 {% if game_list %}
     <ol id="gamelist">
-        {% for value in all_games %}
-            <li>
-                {{ ', '.join(value['title']) }},
-                {{ ', '.join(value['yearpublished']) }}
-                <a href="#game{{all_games.index(value)}}">see in table</a>
-            </li>
-        {% endfor %}
+        {% if all_games|length > show_first %}
+            {% for value in all_games[:show_first] %}
+                <li>
+                    {{ ', '.join(value['title']) }},
+                    {{ ', '.join(value['yearpublished']) }}
+                    <a href="#game{{all_games.index(value)}}">see in table</a>
+                </li>
+            {% endfor %}
+            <details class="more_info">
+                <summary
+                        data-open="close"
+                        data-close="{{'show ' + all_games[show_first:]|length|string() + ' more' }}">
+                </summary>
+                {% for value in all_games[show_first:-1] %}
+                    <li>
+                        {{ ', '.join(value['title']) }},
+                        {{ ', '.join(value['yearpublished']) }}
+                        <a href="#game{{all_games.index(value)}}">see in table</a>
+                    </li>
+                {% endfor %}
+                    <li>
+                        {{ ', '.join(all_games[-1]['title']) }},
+                        {{ ', '.join(all_games[-1]['yearpublished']) }}
+                        <a href="#game{{all_games.index(all_games[-1])}}">see in table</a>
+                    </li>
+            </details>
+        {% else %}
+            {% for value in all_games %}
+                <li>
+                    {{ ', '.join(value['title']) }},
+                    {{ ', '.join(value['yearpublished']) }}
+                    <a href="#game{{all_games.index(value)}}">see in table</a>
+                </li>
+            {% endfor %}
+        {% endif %}
     </ol>
 
     <table>
