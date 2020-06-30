@@ -98,6 +98,7 @@ def get_games_info(
                                 'name': item.text,
                                 }
                     info_dict[key].append(tmp_dict)
+            info_dict[key] = sorted(info_dict[key], key=lambda category: category['name'])
 
     # обновление неважных списков ключей с objectid
     def update_boardgame_not_ess_with_ids(game, info_dict):
@@ -114,6 +115,7 @@ def get_games_info(
                                 'name': item.text,
                                 }
                     info_dict[key].append(tmp_dict)
+            info_dict[key] = sorted(info_dict[key], key=lambda category: category['name'])
 
     def update_statistic_data(game, info_dict):
         stat_keys = ['rank',
