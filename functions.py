@@ -1,5 +1,5 @@
 import requests
-import json
+import lxml
 from bs4 import BeautifulSoup
 
 

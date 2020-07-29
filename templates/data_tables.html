@@ -57,7 +57,7 @@
                         <td>
                             {% if param_data|length > show_first %}
                                 {% for i in range(show_first) %}
-                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/">{{param_data[i]['name']}}</a>;<br>
+                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/" target="_blank">{{param_data[i]['name']}}</a>;<br>
                                 {% endfor %}
                                 <details class="more_info">
                                     <summary
@@ -65,14 +65,15 @@
                                             data-close="{{'show ' + param_data[show_first - 1:]|length|string() + ' more' }}">
                                     </summary>
                                     {% for i in range(show_first, param_data[:-1]|length) %}
-                                        <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/">{{param_data[i]['name']}}</a>;<br>
+                                        <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[i]['id']}}/" target="_blank">{{param_data[i]['name']}}</a>;<br>
                                     {% endfor %}
-                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[-1]['id']}}/">{{param_data[-1]['name']}}</a>;<br>
+                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[-1]['id']}}/" target="_blank">{{param_data[-1]['name']}}</a>;<br>
                                 </details>
                             {% else %}
-                                {% for elem in param_data %}
-                                    <a href="https://boardgamegeek.com/{{game_param}}/{{elem['id']}}/">{{elem['name']}}</a><br>
+                                {% for elem in param_data[:-1] %}
+                                    <a href="https://boardgamegeek.com/{{game_param}}/{{elem['id']}}/" target="_blank">{{elem['name']}}</a>;<br>
                                 {% endfor %}
+                                    <a href="https://boardgamegeek.com/{{game_param}}/{{param_data[-1]['id']}}/" target="_blank">{{param_data[-1]['name']}}</a><br>
                             {% endif %}
                         </td>
                     {% else %}
@@ -96,7 +97,7 @@
                             {% if game_param == 'title' %}
                                 <td>
                                     {% for elem in param_data[:param_data|length-1] %}
-                                        <a href="https://boardgamegeek.com/boardgame/{{game_id}}" target="_blank">
+                                        <a href="https://boardgamegeek.com/boardgame/{{game_id}}"  target="_blank">
                                         {{ elem }};<br>
                                         </a>
                                     {% endfor %}
