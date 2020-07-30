@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import functions as fn
 import random
-import json
 
 app = Flask(__name__)
 
@@ -36,14 +35,15 @@ aliases = {'rank': 'Game rank',
            'boardgameversion': 'Versions',
            # 'videogamebg': 'Videogame',
            'boardgameaccessory': 'Accessories',
-    }
+           }
 
-@app.route("/")
+
+@app.route("/bgg/")
 def index():
     return render_template("index.html")
 
 
-@app.route("/show")
+@app.route("/bgg/show")
 def show_games():
     num_games = int(request.args.get("num_games"))
     sort = request.args.get("sort")
@@ -66,7 +66,7 @@ def show_games():
                            sort_dir=sort_dir)
 
 
-@app.route("/search")
+@app.route("/bgg/search")
 def search():
     search_string = request.args.get("search_string")
     exact = request.args.get("exact")
@@ -93,3 +93,7 @@ def search():
                            all_games=all_games,
                            game_list_for_th=game_list_for_th,
                            )
+
+
+if __name__ == '__main__':
+    app.run()
