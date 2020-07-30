@@ -38,12 +38,12 @@ aliases = {'rank': 'Game rank',
            }
 
 
-@app.route("/bgg/")
+@app.route("/")
 def index():
     return render_template("index.html")
 
 
-@app.route("/bgg/show")
+@app.route("/show")
 def show_games():
     num_games = int(request.args.get("num_games"))
     sort = request.args.get("sort")
@@ -66,7 +66,7 @@ def show_games():
                            sort_dir=sort_dir)
 
 
-@app.route("/bgg/search")
+@app.route("/search")
 def search():
     search_string = request.args.get("search_string")
     exact = request.args.get("exact")
