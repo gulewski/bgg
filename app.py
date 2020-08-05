@@ -29,6 +29,7 @@ aliases = {'rank': 'Game rank',
            'boardgamesubdomain': 'Subdomain',
            'boardgameexpansion': 'Expansions',
            'boardgameintegration': 'Integrations',
+           'boardgame': 'Integrations',
 
            'boardgamepodcastepisode': 'Podcasts',
            'boardgamehonor': 'Honors',

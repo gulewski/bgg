@@ -94,11 +94,17 @@ def get_games_info(
             request = game.find_all(key)
             if request:
                 for item in request:
-                    tmp_dict = {'id': item['objectid'],
-                                'name': item.text,
-                                }
-                    info_dict[key].append(tmp_dict)
+                    try:
+                        if item['inbound']:
+                            continue
+                    except KeyError:
+                        tmp_dict = {'id': item['objectid'],
+                                    'name': item.text,
+                                    }
+                        info_dict[key].append(tmp_dict)
             info_dict[key] = sorted(info_dict[key], key=lambda category: category['name'])
+        info_dict['boardgame'] = info_dict['boardgameintegration']
+        del info_dict['boardgameintegration']
 
     # обновление неважных списков ключей с objectid
     def update_boardgame_not_ess_with_ids(game, info_dict):
