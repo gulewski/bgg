@@ -139,8 +139,6 @@ def get_games_info(
                 info_dict['rank'].append(rank['value'])
         for key in stat_keys[1:]:
             info_dict[key].append(game.find(key).text)
-            info_dict[key].append(game.find(key).text)
-            info_dict[key].append(game.find(key).text)
 
     # создание url-строки с objectid игр для запроса в api,
     # независимо от того, получены они через поиск или через сортировку.

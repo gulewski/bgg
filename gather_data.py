@@ -112,8 +112,6 @@ def update_statistic_data(game, info_dict):
             info_dict['rank'].append(rank['value'])
     for key in stat_keys[1:]:
         info_dict[key].append(game.find(key).text)
-        info_dict[key].append(game.find(key).text)
-        info_dict[key].append(game.find(key).text)
 
 
 time_start = datetime.datetime.now()
