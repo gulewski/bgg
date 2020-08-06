@@ -41,9 +41,13 @@ def get_games_info(
 
     # получение object_id игры для запросов к API
     def get_object_id_from_table(game):
-        obj_id = game.find('td', {'class': 'collection_thumbnail'}).a['href'][1:]
-        obj_id = obj_id[obj_id.find('/') + 1:]
-        return obj_id[:obj_id.find('/')]
+        link = game.find('td', {'class': 'collection_thumbnail'}).a['href'][1:]
+        word_list = link.split("/")
+        for _ in word_list:
+            if _.isdigit():
+                return _
+        return None
+
 
     # обновление списков названий игр - основного и альтернативных
     def update_boardgame_titles(game, info_dict):
