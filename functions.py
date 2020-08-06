@@ -41,9 +41,8 @@ def get_games_info(
 
     # получение object_id игры для запросов к API
     def get_object_id_from_table(game):
-        link = game.find('td', {'class': 'collection_thumbnail'}).a['href'][1:]
-        word_list = link.split("/")
-        for _ in word_list:
+        link = game.find('td', {'class': 'collection_thumbnail'}).a['href']
+        for _ in link.split("/"):
             if _.isdigit():
                 return _
         return None
@@ -127,6 +126,7 @@ def get_games_info(
                     info_dict[key].append(tmp_dict)
             info_dict[key] = sorted(info_dict[key], key=lambda category: category['name'])
 
+    # обновление статистических параметров
     def update_statistic_data(game, info_dict):
         stat_keys = ['rank',
                      'usersrated',
@@ -137,9 +137,10 @@ def get_games_info(
         for rank in ranks:
             if rank['name'] == 'boardgame':
                 info_dict['rank'].append(rank['value'])
-        info_dict['usersrated'].append(game.find('usersrated').text)
-        info_dict['average'].append(game.find('average').text)
-        info_dict['bayesaverage'].append(game.find('bayesaverage').text)
+        for key in stat_keys[1:]:
+            info_dict[key].append(game.find(key).text)
+            info_dict[key].append(game.find(key).text)
+            info_dict[key].append(game.find(key).text)
 
     # создание url-строки с objectid игр для запроса в api,
     # независимо от того, получены они через поиск или через сортировку.
