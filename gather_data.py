@@ -30,7 +30,7 @@ def update_boardgame_titles(game, info_dict):
             pass
         other_names.append(item.text)
     info_dict['title'] = primary_name
-    # info_dict['alt_titles'] = other_names
+    info_dict['other_titles'] = other_names
 
 
 # обновление списков ключей без objectid
@@ -42,8 +42,8 @@ def update_boardgame_ess_wo_ids(game, info_dict):
                        'maxplaytime',
                        'age',
                        'thumbnail',
-                       # 'image',
-                       # 'description',
+                       'image',
+                       'description',
                        ]
     for key in ess_keys_wo_oid:
         request = game.find_all(key)
@@ -140,9 +140,9 @@ while page_num <= fin_page:
         games_data[game_id] = {
             'rank': [],
             'title': [],
-            # 'alt_titles': [],
+            'other_titles': [],
             'thumbnail': [],
-            # 'image': [],
+            'image': [],
             'usersrated': [],
             'average': [],
             'bayesaverage': [],
@@ -152,7 +152,7 @@ while page_num <= fin_page:
             'minplaytime': [],
             'maxplaytime': [],
             'age': [],
-            # 'description': [],
+            'description': [],
             'boardgamedesigner': [],
             'boardgameartist': [],
             'boardgamepublisher': [],
@@ -165,7 +165,6 @@ while page_num <= fin_page:
             'boardgamepodcastepisode': [],
             'boardgamehonor': [],
             'boardgameversion': [],
-            # 'videogamebg': [],
             'boardgameaccessory': [],
         }
     soup_for_games = get_soup_lxml(api_url)
