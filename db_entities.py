@@ -9,6 +9,11 @@ class Additionals(Base):
     additional_id = Column(Integer, primary_key=True)
     additional_name = Column(String)
 
+    def __repr__(self):
+        return f'Additionals. ' \
+               f'ID: {self.additional_id}, ' \
+               f'name: {self.additional_name}'
+
 
 class Bgames(Base):
     __tablename__ = 'bgames'
@@ -29,6 +34,21 @@ class Bgames(Base):
     average = Column(Numeric)
     bayesaverage = Column(Numeric)
 
+    def __repr__(self):
+        return f'Bgames. ' \
+               f'ID: {self.bgame_id}, ' \
+               f'title: {self.title}, ' \
+               f'year: {self.year}, ' \
+               f'min and max players: {self.min_players} {self.max_players}, ' \
+               f'playtime, min and max: {self.playtime} {self.min_playtime} {self.max_playtime}, ' \
+               f'age: {self.age}, ' \
+               f'thumbnail and image: {self.thumbnail} {self.image}, ' \
+               f'start of description: {self.description[:25]}, ' \
+               f'end of description: {self.description[-25:]}, ' \
+               f'rank: {self.rank}, ' \
+               f'userrated: {self.userrated}, ' \
+               f'averages: {self.average} {self.bayesaverage}'
+
 
 class BgamesAdditionals(Base):
     __tablename__ = 'bgames_additionals'
@@ -36,6 +56,13 @@ class BgamesAdditionals(Base):
     additional_id = Column(Integer, primary_key=True)
     additional_type = Column(String, primary_key=True)
     link_ref = Column(String)
+
+    def __repr__(self):
+        return f'BgamesAdditionals. ' \
+               f'Bgame ID: {self.bgame_id}, ' \
+               f'Additional ID: {self.additional_id}, ' \
+               f'Additional type: {self.additional_type}, ' \
+               f'link ref: {self.link_ref}'
 
 
 class BgamesPeople(Base):
@@ -45,6 +72,13 @@ class BgamesPeople(Base):
     person_type = Column(String, primary_key=True)
     link_ref = Column(String)
 
+    def __repr__(self):
+        return f'BgamesPeople. ' \
+               f'Bgame ID: {self.bgame_id}, ' \
+               f'Person ID: {self.person_id}, ' \
+               f'Person type: {self.person_type}, ' \
+               f'link ref: {self.link_ref}'
+
 
 class BgamesRelatedGames(Base):
     __tablename__ = 'bgames_related_games'
@@ -53,13 +87,27 @@ class BgamesRelatedGames(Base):
     related_game_type = Column(String, primary_key=True)
     link_ref = Column(String)
 
+    def __repr__(self):
+        return f'BgamesRelatedGames. ' \
+               f'Bgame ID: {self.bgame_id}, ' \
+               f'Related game ID: {self.related_game_id}, ' \
+               f'Related game type: {self.related_game_type}, ' \
+               f'link ref: {self.link_ref}'
 
-class BgameTags(Base):
+
+class BgamesTags(Base):
     __tablename__ = 'bgames_tags'
     bgame_id = Column(Integer, primary_key=True)
     tag_id = Column(Integer, primary_key=True)
     tag_type = Column(String, primary_key=True)
     link_ref = Column(String)
+
+    def __repr__(self):
+        return f'BgamesTags. ' \
+               f'Bgame ID: {self.bgame_id}, ' \
+               f'Tag ID: {self.tag_id}, ' \
+               f'Tag type: {self.tag_type}, ' \
+               f'link ref: {self.link_ref}'
 
 
 class People(Base):
@@ -67,14 +115,29 @@ class People(Base):
     person_id = Column(Integer, primary_key=True)
     person_name = Column(String)
 
+    def __repr__(self):
+        return f'People. ' \
+               f'Person ID: {self.person_id}, ' \
+               f'Person name: {self.person_name}'
+
 
 class RelatedGames(Base):
     __tablename__ = 'related_games'
     related_game_id = Column(Integer, primary_key=True)
     related_game_name = Column(String)
 
+    def __repr__(self):
+        return f'RelatedGames. ' \
+               f'Related Game ID: {self.related_game_id}, ' \
+               f'Related Game name: {self.related_game_name}, '
+
 
 class Tags(Base):
     __tablename__ = 'tags'
     tag_id = Column(Integer, primary_key=True)
     tag_name = Column(String)
+
+    def __repr__(self):
+        return f'Tags. ' \
+               f'Tag ID: {self.tag_id}, ' \
+               f'Tag name: {self.tag_name}, '
