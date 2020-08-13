@@ -3,7 +3,6 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 
-
 def get_obj_id(text: str):
     word_list = text.split("/")
     for _ in word_list:
