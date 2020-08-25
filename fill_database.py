@@ -1,12 +1,10 @@
 import creds
 import db_entities as dbt
 
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+import urllib3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import requests
-from requests.exceptions import ConnectionError
 from bs4 import BeautifulSoup
 
 import datetime
@@ -22,37 +20,39 @@ def create_db_session():
 
 
 # getting final page of boardgamegeek/browse link
-def get_final_page(active_driver):
-    active_driver.get(creds.BGG_BROWSE_PAGE + "1")
-    all_pages = active_driver.find_element_by_class_name("fr").text
-    result = all_pages[all_pages.find("[") + 1:all_pages.find("]")]
+def get_final_page(url):
+    http = urllib3.PoolManager()
+    response = http.request("GET", url)
+    soup = BeautifulSoup(response.data, features="html.parser")
+    pages = soup.find("div", {"class": "fr"}).text
+    result = pages[pages.find("[") + 1:pages.find("]")]
     return int(result)
 
 
 # collecting all ids and descriptions from current page
-def get_ids_and_descriptions(active_driver, page_num: int):
+def get_ids_and_descriptions(url_base, page_num: int):
     # collecting game id from row
     def get_obj_id(game_row):
-        link = game_row.find_element_by_tag_name("a").get_attribute("href")
+        link = game_row.find("a", {"class": "primary"})["href"]
         word_list = link.split("/")
-        for _ in word_list:
-            if _.isdigit():
-                return _
+        for word in word_list:
+            if word.isdigit():
+                return word
         return None
 
     # collecting game descriptions from row
     def get_description(game_row):
         try:
-            return game_row.find_element_by_tag_name("p").text
-        except NoSuchElementException:
+            return game_row.find("p").text.strip()
+        except AttributeError:
             return None
 
-    active_driver.get(creds.BGG_BROWSE_PAGE + str(page_num))
-    table_rows = active_driver.find_elements_by_class_name("collection_objectname")
+    http = urllib3.PoolManager()
+    response = http.request("GET", url_base + str(page_num))
+    soup = BeautifulSoup(response.data, features="html.parser")
+    table_rows = soup.find("div", {"class": "table-responsive"}).find_all("tr")[1:]
     ids_list = []
     descs = {}
-    # if you like comprehensions, uncomment this
-    # id_list = [get_obj_id(row.find_element_by_tag_name("a").get_attribute("href")) for row in table_rows]
     for row in table_rows:
         cur_id = get_obj_id(row)
         ids_list.append(cur_id)
@@ -138,7 +138,6 @@ def update_bgames(dict_with_descs: dict, bgames_table: dict, template, bg):
 
 # start of work
 time_start = datetime.datetime.now()
-driver = webdriver.Chrome(creds.WEBDRIVER_PATH)
 
 people_type_link_conn = {"boardgamedesigner": "designer",
                          "boardgameartist": "artist",
@@ -174,11 +173,11 @@ bgames_template = {"name": None,
                    "bayesaverage": None,
                    }
 
-final_page = get_final_page(driver)
+final_page = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
 
-for page in range(1195, final_page+1):  # get_final_page(driver)+1):
+for page in range(1195, final_page):  # get_final_page(driver)+1):
     # getting list of bg ids for current page
-    id_list, descriptions = get_ids_and_descriptions(driver, page)
+    id_list, descriptions = get_ids_and_descriptions(creds.BGG_BROWSE_PAGE, page)
     # creating URI for xmlapi request
     xmlapi_ref = creds.XMLAPI_START + ",".join(id_list) + creds.XMLAPI_END
     print(xmlapi_ref)
@@ -223,7 +222,6 @@ for page in range(1195, final_page+1):  # get_final_page(driver)+1):
 # 5 вносим из словар все по таблицам базы данны
 # 6 профит
 
-driver.close()
 print(datetime.datetime.now() - time_start)
 
 
