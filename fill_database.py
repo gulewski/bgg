@@ -1,12 +1,13 @@
 import creds
 import db_entities as dbt
 
-import urllib3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import requests
+import urllib3  # will be used for search function
 from bs4 import BeautifulSoup
 
+import time
 import datetime
 import json
 
@@ -21,9 +22,8 @@ def create_db_session():
 
 # getting final page of boardgamegeek/browse link
 def get_final_page(url):
-    http = urllib3.PoolManager()
-    response = http.request("GET", url)
-    soup = BeautifulSoup(response.data, features="html.parser")
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, features="html.parser")
     pages = soup.find("div", {"class": "fr"}).text
     result = pages[pages.find("[") + 1:pages.find("]")]
     return int(result)
@@ -47,9 +47,8 @@ def get_ids_and_descriptions(url_base, page_num: int):
         except AttributeError:
             return None
 
-    http = urllib3.PoolManager()
-    response = http.request("GET", url_base + str(page_num))
-    soup = BeautifulSoup(response.data, features="html.parser")
+    response = requests.get(url_base + str(page_num))
+    soup = BeautifulSoup(response.text, features="html.parser")
     table_rows = soup.find("div", {"class": "table-responsive"}).find_all("tr")[1:]
     ids_list = []
     descs = {}
@@ -175,7 +174,7 @@ bgames_template = {"name": None,
 
 final_page = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
 
-for page in range(1195, final_page):  # get_final_page(driver)+1):
+for page in range(1, 2):
     # getting list of bg ids for current page
     id_list, descriptions = get_ids_and_descriptions(creds.BGG_BROWSE_PAGE, page)
     # creating URI for xmlapi request
@@ -214,15 +213,17 @@ for page in range(1195, final_page):  # get_final_page(driver)+1):
           f"additionals: {len(additionals)}, {len(set(additionals))}, {len(bgames_additionals)}\n"
           f"related: {len(related)}, {len(set(related))}, {len(bgames_related)}\n"
           f"bgames: {len(bgames)}")
+    # add sleeper to avoid bggAPI ban :)
+    time.sleep(3)
 
 # + 1 запрашиваем номер финальной страницы с бгг
 # + 2 в цикле от 1 до финальной страницы вкл-но собираем со страницы ID игр и описания
 # + 3 запрашиваем по кадой странице xmlapi с сотней игр (кроме последней страницы)
-# 4 разбираем апишку в словарь
+# + 4 разбираем апишку в словарь
 # 5 вносим из словар все по таблицам базы данны
 # 6 профит
 
-print(datetime.datetime.now() - time_start)
+print(f"spent {datetime.datetime.now() - time_start}")
 
 
 # cleaning all tables in database
