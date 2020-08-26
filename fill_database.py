@@ -59,162 +59,157 @@ def get_ids_and_descriptions(url_base, page_num: int):
     return ids_list, descs
 
 
-# updating sublists for core tables and connection between core table and boardgames table
-def update_sublists(conn_keys: dict, pure_table: list, bg_conn_table: list, bg):
-    for tag in conn_keys.keys():
-        type_searching = bg.find_all(tag)
-        for element in type_searching:
-            try:
-                if element["inbound"]:
-                    continue
-            except KeyError:
-                pure_table.append(tuple((element["objectid"], element.text)))
-                # a crutch for integrations
-                if tag == "boardgameintegration":
-                    bg_conn_table.append(tuple((bg["objectid"], element["objectid"], conn_keys[tag], "boardgame")))
-                else:
-                    bg_conn_table.append(tuple((bg["objectid"], element["objectid"], conn_keys[tag], tag)))
-
-
-# updating sublist for boardgames itself
-def update_bgames(dict_with_descs: dict, bgames_table: dict, template, bg):
-    current_id = bg["objectid"]
-    current_bgame = template.copy()
-    for key in current_bgame.keys():
-        if key == 'description':  # gathered from page
-            current_bgame['description'] = dict_with_descs[current_id]
-        elif key == "name":  # special case with name
-            all_names = bg.find_all("name")
-            for name in all_names:
-                try:
-                    if name["primary"] == "true":
-                        current_bgame["name"] = name.text
-                        continue
-                except KeyError:
-                    pass
-        elif key in ["image",
-                     "thumbnail",
-                     ]:  # varchar fields
-            try:
-                current_bgame[key] = bg.find(key).text
-            except AttributeError:
-                pass
-        elif key in ["yearpublished",
-                     "minplayers",
-                     "maxplayers",
-                     "playingtime",
-                     "minplaytime",
-                     "maxplaytime",
-                     "age",
-                     ]:  # int not statistics fields
-            try:
-                current_bgame[key] = int(bg.find(key).text)
-            except AttributeError:
-                pass
-            except ValueError:
-                pass
-        else:  # statistics
-            if key == "rank":  # special case with rank
-                all_ranks = bg.find_all("rank")
-                for rank in all_ranks:
-                    if rank["name"] == "boardgame":
+def update_dataset(descs: dict, bgames_dataset: dict, bgame):
+    bgames_structure = {"objectid": None,
+                        "name": None,
+                        "yearpublished": None,
+                        "minplayers": None,
+                        "maxplayers": None,
+                        "playingtime": None,
+                        "minplaytime": None,
+                        "maxplaytime": None,
+                        "age": None,
+                        "thumbnail": None,
+                        "image": None,
+                        "description": None,
+                        "rank": None,
+                        "usersrated": None,
+                        "average": None,
+                        "bayesaverage": None,
+                        }
+    additionals_type_link_conn = {"boardgameversion": "version",
+                                  "boardgamehonor": "honor",
+                                  "boardgamepodcastepisode": "podcast",
+                                  "boardgameaccessory": "accessory",
+                                  }
+    people_type_link_conn = {"boardgamedesigner": "designer",
+                             "boardgameartist": "artist",
+                             "boardgamepublisher": "publisher",
+                             }
+    related_type_link_conn = {"boardgameintegration": "integration",
+                              "boardgameexpansion": "expansion",
+                              }
+    tags_type_link_conn = {"boardgamecategory": "category",
+                           "boardgamemechanic": "mechanic",
+                           "boardgamefamily": "family",
+                           "boardgamesubdomain": "subdomain",
+                           }
+    current_objectid = bgame["objectid"]
+    current_bgame = bgames_structure.copy()
+    current_taglist = bgame.find_all()
+    current_bgame["objectid"] = int(current_objectid)  # special case with objectid
+    for tag in current_taglist:
+        try:
+            if tag["inbound"]:
+                continue
+        except KeyError:
+            if tag.name in current_bgame.keys():  # updating boardgame fields
+                if tag.name == "description":  # gathered from page
+                    current_bgame[tag.name] = descs[current_objectid]
+                elif tag.name == "name":  # special case with name
+                    try:
+                        if tag["primary"] == "true":
+                            current_bgame[tag.name] = tag.text
+                    except KeyError:
+                        pass
+                elif tag.name == "rank":  # special case with rank
+                    if tag["name"] == "boardgame":
                         try:
-                            current_bgame[key] = int(rank["value"])
+                            current_bgame[tag.name] = int(tag["value"])
                         except ValueError:
                             pass
-            elif key == "usersrated":  # int statistic field
-                try:
-                    current_bgame[key] = int(bg.find(key).text)
-                except AttributeError:
-                    pass
-            else:  # float ranks
-                try:
-                    current_bgame[key] = float(bg.find(key).text)
-                except AttributeError:
-                    pass
-    bgames_table[current_id] = current_bgame
+                elif tag.name in ["average", "bayesaverage"]:  # float fields
+                    current_bgame[tag.name] = float(tag.text)
+                elif tag.name in ["image", "thumbnail"]:  # text fields
+                    current_bgame[tag.name] = tag.text
+                else:  # int fields
+                    try:
+                        current_bgame[tag.name] = int(tag.text)
+                    except ValueError:
+                        pass
+            elif tag.name in additionals_type_link_conn.keys():
+                bgames_dataset["additionals"].add((tag['objectid'],
+                                                   tag.text))
+                bgames_dataset["bgames_additionals"].add((boardgame['objectid'],
+                                                          tag['objectid'],
+                                                          additionals_type_link_conn[tag.name],
+                                                          tag.name))
+            elif tag.name in people_type_link_conn.keys():
+                bgames_dataset["people"].add((tag['objectid'],
+                                              tag.text))
+                bgames_dataset["bgames_people"].add((boardgame['objectid'],
+                                                     tag['objectid'],
+                                                     people_type_link_conn[tag.name],
+                                                     tag.name))
+            elif tag.name in related_type_link_conn.keys():
+                bgames_dataset["related_games"].add((tag['objectid'],
+                                                     tag.text))
+                if tag.name == "boardgameintegration":  # special case for integrations
+                    bgames_dataset["bgames_related_games"].add((boardgame['objectid'],
+                                                                tag['objectid'],
+                                                                related_type_link_conn[tag.name],
+                                                                "boardgame"))
+                else:
+                    bgames_dataset["bgames_related_games"].add((boardgame['objectid'],
+                                                                tag['objectid'],
+                                                                related_type_link_conn[tag.name],
+                                                                tag.name))
+            elif tag.name in tags_type_link_conn.keys():
+                bgames_dataset["tags"].add((tag['objectid'],
+                                            tag.text))
+                bgames_dataset["bgames_tags"].add((boardgame['objectid'],
+                                                   tag['objectid'],
+                                                   tags_type_link_conn[tag.name],
+                                                   tag.name))
+    bgames_dataset["bgames"].append(current_bgame)
 
 
 # start of work
 time_start = datetime.datetime.now()
 
-people_type_link_conn = {"boardgamedesigner": "designer",
-                         "boardgameartist": "artist",
-                         "boardgamepublisher": "publisher",
-                         }
-tags_type_link_conn = {"boardgamecategory": "category",
-                       "boardgamemechanic": "mechanic",
-                       "boardgamefamily": "family",
-                       "boardgamesubdomain": "subdomain",
-                       }
-additionals_type_link_conn = {"boardgameversion": "version",
-                              "boardgamehonor": "honor",
-                              "boardgamepodcastepisode": "podcast",
-                              "boardgameaccessory": "accessory",
-                              }
-related_type_link_conn = {"boardgameintegration": "integration",
-                          "boardgameexpansion": "expansion",
-                          }
-bgames_template = {"name": None,
-                   "yearpublished": None,
-                   "minplayers": None,
-                   "maxplayers": None,
-                   "playingtime": None,
-                   "minplaytime": None,
-                   "maxplaytime": None,
-                   "age": None,
-                   "thumbnail": None,
-                   "image": None,
-                   "description": None,
-                   "rank": None,
-                   "usersrated": None,
-                   "average": None,
-                   "bayesaverage": None,
-                   }
-
 final_page = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
 
-for page in range(1, 2):
+for page in range(1, 3):
+    current_loop_time = datetime.datetime.now()
     # getting list of bg ids for current page
     id_list, descriptions = get_ids_and_descriptions(creds.BGG_BROWSE_PAGE, page)
     # creating URI for xmlapi request
     xmlapi_ref = creds.XMLAPI_START + ",".join(id_list) + creds.XMLAPI_END
-    print(xmlapi_ref)
     # get xmlapi page itself and put it in soup-object
+    print(xmlapi_ref)
     xmlapi_page = requests.get(xmlapi_ref)
     soup_for_games = BeautifulSoup(xmlapi_page.text, features="lxml")
     # creating a list of boardgames for current xmlapi page
     boardgames = soup_for_games.find_all('boardgame')
-    # entity for boardgame itself
-    bgames = {}
-    # entities for people and connections with boardgdames
-    people, bgames_people = [], []
-    # entities for tags and connections with boardgdames
-    tags, bgames_tags = [], []
-    # entities for additionals and connections with boardgdames
-    additionals, bgames_additionals = [], []
-    # entities for related games and connections with boardgdames
-    related, bgames_related = [], []
-    # for each boardgame updating sublists of entities
+    # creating a dataset for game data
+    data = {"bgames": list(),
+            "additionals": set(),
+            "bgames_additionals": set(),
+            "people": set(),
+            "bgames_people": set(),
+            "related_games": set(),
+            "bgames_related_games": set(),
+            "tags": set(),
+            "bgames_tags": set(),
+            }
+    # updating dataset for each boardgame on the page
     for boardgame in boardgames:
         try:
             if boardgame["inbound"]:
                 continue
         except KeyError:
-            update_sublists(people_type_link_conn, people, bgames_people, boardgame)
-            update_sublists(tags_type_link_conn, tags, bgames_tags, boardgame)
-            update_sublists(additionals_type_link_conn, additionals, bgames_additionals, boardgame)
-            update_sublists(related_type_link_conn, related, bgames_related, boardgame)
-            update_bgames(descriptions, bgames, bgames_template, boardgame)
-
+            update_dataset(descriptions, data, boardgame)
     print(f"page #{page}\n"
-          f"people: {len(people)}, {len(set(people))}, {len(bgames_people)}\n"
-          f"tags: {len(tags)}, {len(set(tags))}, {len(bgames_tags)}\n"
-          f"additionals: {len(additionals)}, {len(set(additionals))}, {len(bgames_additionals)}\n"
-          f"related: {len(related)}, {len(set(related))}, {len(bgames_related)}\n"
-          f"bgames: {len(bgames)}")
-    # add sleeper to avoid bggAPI ban :)
-    time.sleep(3)
+          f"people: {len(data['people'])}, {len(data['bgames_people'])}\n"
+          f"tags: {len(data['tags'])}, {len(data['bgames_tags'])}\n"
+          f"additionals: {len(data['additionals'])}, {len(data['bgames_additionals'])}\n"
+          f"related: {len(data['related_games'])}, {len(data['bgames_related_games'])}\n"
+          f"bgames: {len(data['bgames'])}")
+    print(data["bgames"])
+    if datetime.datetime.now() - current_loop_time > datetime.timedelta(3):
+        continue
+    else:
+        time.sleep(3)
 
 # + 1 запрашиваем номер финальной страницы с бгг
 # + 2 в цикле от 1 до финальной страницы вкл-но собираем со страницы ID игр и описания
