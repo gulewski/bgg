@@ -176,7 +176,6 @@ for page in range(1, 3):
     # creating URI for xmlapi request
     xmlapi_ref = creds.XMLAPI_START + ",".join(id_list) + creds.XMLAPI_END
     # get xmlapi page itself and put it in soup-object
-    print(xmlapi_ref)
     xmlapi_page = requests.get(xmlapi_ref)
     soup_for_games = BeautifulSoup(xmlapi_page.text, features="lxml")
     # creating a list of boardgames for current xmlapi page
@@ -205,11 +204,10 @@ for page in range(1, 3):
           f"additionals: {len(data['additionals'])}, {len(data['bgames_additionals'])}\n"
           f"related: {len(data['related_games'])}, {len(data['bgames_related_games'])}\n"
           f"bgames: {len(data['bgames'])}")
-    print(data["bgames"])
-    if datetime.datetime.now() - current_loop_time > datetime.timedelta(3):
-        continue
-    else:
-        time.sleep(3)
+    # with open('data.txt', 'w') as file:
+    #     file.write(str(data))
+    time.sleep(3)
+
 
 # + 1 запрашиваем номер финальной страницы с бгг
 # + 2 в цикле от 1 до финальной страницы вкл-но собираем со страницы ID игр и описания
