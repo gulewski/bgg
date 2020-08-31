@@ -11,7 +11,7 @@
             <details class="more_info">
                 <summary
                         data-open="close"
-                        data-close="{{'show ' + all_games[show_first:]|length|string() + ' more' }}">
+                        data-close="{{'show ' + all_games[show_first - 1:]|length|string() + ' more' }}">
                 </summary>
                 {% for value in all_games[show_first:-1] %}
                     <li>
