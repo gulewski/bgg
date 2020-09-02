@@ -4,6 +4,7 @@ import db_entities as dbt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import requests
+from requests.exceptions import ConnectionError
 import urllib3  # will be used for search function
 from bs4 import BeautifulSoup
 
@@ -116,7 +117,10 @@ def update_dataset(descs: dict, bgames_dataset: dict, bgame):
                         except ValueError:
                             pass
                 elif tag.name in ["average", "bayesaverage"]:  # float fields
-                    current_bgame[tag.name] = float(tag.text)
+                    try:
+                        current_bgame[tag.name] = float(tag.text)
+                    except ValueError:
+                        current_bgame[tag.name] = 0.0
                 elif tag.name in ["image", "thumbnail"]:  # text fields
                     current_bgame[tag.name] = tag.text
                 else:  # int fields
@@ -126,94 +130,101 @@ def update_dataset(descs: dict, bgames_dataset: dict, bgame):
                         pass
             elif tag.name in pure_join_conns.keys():
                 bgames_dataset[pure_join_conns[tag.name][0]].add((tag["objectid"],
-                                                                 tag.text))
-                bgames_dataset[pure_join_conns[tag.name][1]].add((boardgame["objectid"],
-                                                                 tag["objectid"]))
+                                                                  tag.text))
+                bgames_dataset[pure_join_conns[tag.name][1]].add((current_objectid,
+                                                                  tag["objectid"]))
     bgames_dataset["bgames"].append(current_bgame)
+
+
+def gather_data(start_page: int, final_page: int, dataset: dict):
+    current_page = start_page
+    try:
+        for page in range(start_page, final_page):
+            # checking time for ban avoiding
+            time_loop = time.time()
+            # getting list of bg ids for current page
+            id_list, descriptions = get_ids_and_descriptions(creds.BGG_BROWSE_PAGE, page)
+            # creating URI for xmlapi request
+            xmlapi_ref = creds.XMLAPI_START + ",".join(id_list) + creds.XMLAPI_END
+            print(xmlapi_ref)
+            # get xmlapi page itself and put it in soup-object
+            xmlapi_page = requests.get(xmlapi_ref)
+            soup_for_games = BeautifulSoup(xmlapi_page.text, features="lxml")
+            # creating a list of boardgames for current xmlapi page
+            boardgames = soup_for_games.find_all("boardgame")
+            # updating dataset for each boardgame on the page
+            for boardgame in boardgames:
+                try:
+                    if boardgame["inbound"]:
+                        continue
+                except KeyError:
+                    update_dataset(descriptions, dataset, boardgame)
+            print(f"page #{page}\n"
+                  f"accessories: {len(dataset['accessories'])}, {len(dataset['bgames_accessories'])}\n"
+                  f"artists: {len(dataset['artists'])}, {len(dataset['bgames_artists'])}\n"
+                  f"categories: {len(dataset['categories'])}, {len(dataset['bgames_categories'])}\n"
+                  f"designers: {len(dataset['designers'])}, {len(dataset['bgames_designers'])}\n"
+                  f"expansions: {len(dataset['expansions'])}, {len(dataset['bgames_expansions'])}\n"
+                  f"families: {len(dataset['families'])}, {len(dataset['bgames_families'])}\n"
+                  f"honors: {len(dataset['honors'])}, {len(dataset['bgames_honors'])}\n"
+                  f"integrations: {len(dataset['integrations'])}, {len(dataset['bgames_integrations'])}\n"
+                  f"mechanics: {len(dataset['mechanics'])}, {len(dataset['bgames_mechanics'])}\n"
+                  f"podcasts: {len(dataset['podcasts'])}, {len(dataset['bgames_podcasts'])}\n"
+                  f"publishers: {len(dataset['publishers'])}, {len(dataset['bgames_publishers'])}\n"
+                  f"subdomains: {len(dataset['subdomains'])}, {len(dataset['bgames_subdomains'])}\n"
+                  f"versions: {len(dataset['versions'])}, {len(dataset['bgames_versions'])}\n"
+                  f"bgames: {len(dataset['bgames'])}")
+            if time.time() - time_loop < 3:
+                time.sleep(3)
+            current_page = page + 1
+            print(datetime.datetime.now() - time_start)
+    except ConnectionError:
+        print("got ConnectionError")
+        gather_data(current_page, final_page, dataset)
 
 
 # start of work
 time_start = datetime.datetime.now()
 
-final_page = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
+start = 1
+finish = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
 
-for page in range(1, 3):
-    time_loop = time.time()
-    # getting list of bg ids for current page
-    id_list, descriptions = get_ids_and_descriptions(creds.BGG_BROWSE_PAGE, page)
-    # creating URI for xmlapi request
-    xmlapi_ref = creds.XMLAPI_START + ",".join(id_list) + creds.XMLAPI_END
-    print(xmlapi_ref)
-    # get xmlapi page itself and put it in soup-object
-    xmlapi_page = requests.get(xmlapi_ref)
-    soup_for_games = BeautifulSoup(xmlapi_page.text, features="lxml")
-    # creating a list of boardgames for current xmlapi page
-    boardgames = soup_for_games.find_all("boardgame")
-    # creating a dataset for game data
-    data = {"bgames": list(),
-            "accessories": set(),
-            "artists": set(),
-            "categories": set(),
-            "designers": set(),
-            "expansions": set(),
-            "families": set(),
-            "honors": set(),
-            "integrations": set(),
-            "mechanics": set(),
-            "podcasts": set(),
-            "publishers": set(),
-            "subdomains": set(),
-            "versions": set(),
-            "bgames_accessories": set(),
-            "bgames_artists": set(),
-            "bgames_categories": set(),
-            "bgames_designers": set(),
-            "bgames_expansions": set(),
-            "bgames_families": set(),
-            "bgames_honors": set(),
-            "bgames_integrations": set(),
-            "bgames_mechanics": set(),
-            "bgames_podcasts": set(),
-            "bgames_publishers": set(),
-            "bgames_subdomains": set(),
-            "bgames_versions": set(),
-            }
-    # updating dataset for each boardgame on the page
-    for boardgame in boardgames:
-        try:
-            if boardgame["inbound"]:
-                continue
-        except KeyError:
-            update_dataset(descriptions, data, boardgame)
-    print(f"page #{page}\n"
-          f"accessories: {len(data['accessories'])}, {len(data['bgames_accessories'])}\n"
-          f"artists: {len(data['artists'])}, {len(data['bgames_artists'])}\n"
-          f"categories: {len(data['categories'])}, {len(data['bgames_categories'])}\n"
-          f"designers: {len(data['designers'])}, {len(data['bgames_designers'])}\n"
-          f"expansions: {len(data['expansions'])}, {len(data['bgames_expansions'])}\n"
-          f"families: {len(data['families'])}, {len(data['bgames_families'])}\n"
-          f"honors: {len(data['honors'])}, {len(data['bgames_honors'])}\n"
-          f"integrations: {len(data['integrations'])}, {len(data['bgames_integrations'])}\n"
-          f"mechanics: {len(data['mechanics'])}, {len(data['bgames_mechanics'])}\n"
-          f"podcasts: {len(data['podcasts'])}, {len(data['bgames_podcasts'])}\n"
-          f"publishers: {len(data['publishers'])}, {len(data['bgames_publishers'])}\n"
-          f"subdomains: {len(data['subdomains'])}, {len(data['bgames_subdomains'])}\n"
-          f"versions: {len(data['versions'])}, {len(data['bgames_versions'])}\n"
-          f"bgames: {len(data['bgames'])}")
-    # with open('data.txt', 'w') as file:
-    #     file.write(str(data))
-    if time.time() - time_loop < 3:
-        time.sleep(3)
+data = {"bgames": list(),
+        "accessories": set(),
+        "artists": set(),
+        "categories": set(),
+        "designers": set(),
+        "expansions": set(),
+        "families": set(),
+        "honors": set(),
+        "integrations": set(),
+        "mechanics": set(),
+        "podcasts": set(),
+        "publishers": set(),
+        "subdomains": set(),
+        "versions": set(),
+        "bgames_accessories": set(),
+        "bgames_artists": set(),
+        "bgames_categories": set(),
+        "bgames_designers": set(),
+        "bgames_expansions": set(),
+        "bgames_families": set(),
+        "bgames_honors": set(),
+        "bgames_integrations": set(),
+        "bgames_mechanics": set(),
+        "bgames_podcasts": set(),
+        "bgames_publishers": set(),
+        "bgames_subdomains": set(),
+        "bgames_versions": set(),
+        }
 
-# + 1 запрашиваем номер финальной страницы с бгг
-# + 2 в цикле от 1 до финальной страницы вкл-но собираем со страницы ID игр и описания
-# + 3 запрашиваем по кадой странице xmlapi с сотней игр (кроме последней страницы, там меньше)
-# + 4 разбираем апишку в словарь
-# 5 вносим из словар все по таблицам базы данны
-# 6 профит
+gather_data(start, finish, data)
+
+print("writing file")
+with open('data.txt', 'w') as file:
+    file.write(str(data))
 
 print(f"spent {datetime.datetime.now() - time_start}")
-
 
 # cleaning all tables in database
 def delete_all_data():
