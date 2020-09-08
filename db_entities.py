@@ -23,22 +23,22 @@ class Accessories(Base):
                f"Link: {self.link}"
 
 
-class Artists(Base):
-    __tablename__ = "artists"
-    artist_id = Column(Integer, primary_key=True)
-    artist_name = Column(String)
-    link = Column(String)
-
-    def __init__(self, artist_id, artist_name):
-        self.artist_id = artist_id
-        self.artist_name = artist_name
-        self.link = creds.LINK_REF_TEMPLATE + "boardgameartist/" + str(artist_id)
-
-    def __repr__(self):
-        return f"Artists.\n" \
-               f"ID: {self.artist_id},\n" \
-               f"Name: {self.artist_name},\n" \
-               f"Link: {self.link}"
+# class Artists(Base):
+#     __tablename__ = "artists"
+#     artist_id = Column(Integer, primary_key=True)
+#     artist_name = Column(String)
+#     link = Column(String)
+#
+#     def __init__(self, artist_id, artist_name):
+#         self.artist_id = artist_id
+#         self.artist_name = artist_name
+#         self.link = creds.LINK_REF_TEMPLATE + "boardgameartist/" + str(artist_id)
+#
+#     def __repr__(self):
+#         return f"Artists.\n" \
+#                f"ID: {self.artist_id},\n" \
+#                f"Name: {self.artist_name},\n" \
+#                f"Link: {self.link}"
 
 
 class Categories(Base):
@@ -59,22 +59,22 @@ class Categories(Base):
                f"Link: {self.link}"
 
 
-class Designers(Base):
-    __tablename__ = "designers"
-    designer_id = Column(Integer, primary_key=True)
-    designer_name = Column(String)
-    link = Column(String)
-
-    def __init__(self, designer_id, designer_name):
-        self.designer_id = designer_id
-        self.designer_name = designer_name
-        self.link = creds.LINK_REF_TEMPLATE + "boardgamedesigner/" + str(designer_id)
-
-    def __repr__(self):
-        return f"Designers.\n" \
-               f"ID: {self.designer_id},\n" \
-               f"Name: {self.designer_name},\n" \
-               f"Link: {self.link}"
+# class Designers(Base):
+#     __tablename__ = "designers"
+#     designer_id = Column(Integer, primary_key=True)
+#     designer_name = Column(String)
+#     link = Column(String)
+#
+#     def __init__(self, designer_id, designer_name):
+#         self.designer_id = designer_id
+#         self.designer_name = designer_name
+#         self.link = creds.LINK_REF_TEMPLATE + "boardgamedesigner/" + str(designer_id)
+#
+#     def __repr__(self):
+#         return f"Designers.\n" \
+#                f"ID: {self.designer_id},\n" \
+#                f"Name: {self.designer_name},\n" \
+#                f"Link: {self.link}"
 
 
 class Expansions(Base):
@@ -165,6 +165,21 @@ class Mechanics(Base):
                f"ID: {self.mechanic_id},\n" \
                f"Name: {self.mechanic_name},\n" \
                f"Link: {self.link}"
+
+
+class People(Base):
+    __tablename__ = "people"
+    person_id = Column(Integer, primary_key=True)
+    person_name = Column(String)
+
+    def __init__(self, person_id, person_name):
+        self.person_id = person_id
+        self.person_name = person_name
+
+    def __repr__(self):
+        return f"People.\n" \
+               f"ID: {self.person_id},\n" \
+               f"Name: {self.person_name}"
 
 
 class Podcasts(Base):
@@ -289,19 +304,19 @@ class BgamesAccessories(Base):
                f"Accessory ID: {self.accessory_id}"
 
 
-class BgamesArtists(Base):
-    __tablename__ = "bgames_artists"
-    bgame_id = Column(Integer, primary_key=True)
-    artist_id = Column(Integer, primary_key=True)
-
-    def __init__(self, bgame_id, artist_id):
-        self.bgame_id = bgame_id
-        self.artist_id = artist_id
-
-    def __repr__(self):
-        return f"BgamesArtists.\n" \
-               f"Bgame ID: {self.bgame_id},\n" \
-               f"Artist ID: {self.artist_id}"
+# class BgamesArtists(Base):
+#     __tablename__ = "bgames_artists"
+#     bgame_id = Column(Integer, primary_key=True)
+#     artist_id = Column(Integer, primary_key=True)
+#
+#     def __init__(self, bgame_id, artist_id):
+#         self.bgame_id = bgame_id
+#         self.artist_id = artist_id
+#
+#     def __repr__(self):
+#         return f"BgamesArtists.\n" \
+#                f"Bgame ID: {self.bgame_id},\n" \
+#                f"Artist ID: {self.artist_id}"
 
 
 class BgamesCategories(Base):
@@ -319,19 +334,19 @@ class BgamesCategories(Base):
                f"Category ID: {self.category_id}"
 
 
-class BgamesDesigners(Base):
-    __tablename__ = "bgames_designers"
-    bgame_id = Column(Integer, primary_key=True)
-    designer_id = Column(Integer, primary_key=True)
-
-    def __init__(self, bgame_id, designer_id):
-        self.bgame_id = bgame_id
-        self.designer_id = designer_id
-
-    def __repr__(self):
-        return f"BgamesDesigners.\n" \
-               f"Bgame ID: {self.bgame_id},\n" \
-               f"Designer ID: {self.designer_id}"
+# class BgamesDesigners(Base):
+#     __tablename__ = "bgames_designers"
+#     bgame_id = Column(Integer, primary_key=True)
+#     designer_id = Column(Integer, primary_key=True)
+#
+#     def __init__(self, bgame_id, designer_id):
+#         self.bgame_id = bgame_id
+#         self.designer_id = designer_id
+#
+#     def __repr__(self):
+#         return f"BgamesDesigners.\n" \
+#                f"Bgame ID: {self.bgame_id},\n" \
+#                f"Designer ID: {self.designer_id}"
 
 
 class BgamesExpansions(Base):
@@ -407,6 +422,27 @@ class BgamesMechanics(Base):
         return f"BgamesMechanics.\n" \
                f"Bgame ID: {self.bgame_id},\n" \
                f"Mechanic ID: {self.mechanic_id}"
+
+
+class BgamesPeople(Base):
+    __tablename__ = "bgames_people"
+    bgame_id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, primary_key=True)
+    person_type = Column(String)
+    link = Column(String)
+
+    def __init__(self, bgame_id, person_id, person_type):
+        self.bgame_id = bgame_id
+        self.person_id = person_id
+        self.person_type = person_type
+        self.link = creds.LINK_REF_TEMPLATE + person_type + "/" + str(person_id)
+
+    def __repr__(self):
+        return f"BgamesPeople.\n" \
+               f"Bgame ID: {self.bgame_id},\n" \
+               f"Person ID: {self.person_id},\n" \
+               f"Person type: {self.person_type},\n" \
+               f"Link: {self.link}"
 
 
 class BgamesPodcasts(Base):
