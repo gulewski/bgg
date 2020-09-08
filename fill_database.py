@@ -79,9 +79,9 @@ def update_dataset(descs: dict, bgames_dataset: dict, bgame):
                         "bayesaverage": None,
                         }
     pure_join_conns = {"boardgameaccessory": ("accessories", "bgames_accessories"),
-                       "boardgameartist": ("artists", "bgames_artists"),
+                       "boardgameartist": None,
                        "boardgamecategory": ("categories", "bgames_categories"),
-                       "boardgamedesigner": ("designers", "bgames_designers"),
+                       "boardgamedesigner": None,
                        "boardgameexpansion": ("expansions", "bgames_expansions"),
                        "boardgamefamily": ("families", "bgames_families"),
                        "boardgamehonor": ("honors", "bgames_honors"),
@@ -129,10 +129,17 @@ def update_dataset(descs: dict, bgames_dataset: dict, bgame):
                     except ValueError:
                         pass
             elif tag.name in pure_join_conns.keys():
-                bgames_dataset[pure_join_conns[tag.name][0]].add((tag["objectid"],
-                                                                  tag.text))
-                bgames_dataset[pure_join_conns[tag.name][1]].add((current_objectid,
-                                                                  tag["objectid"]))
+                if tag.name in ("boardgameartist", "boardgamedesigner"):  # special case with people
+                    bgames_dataset["people"].add((tag["objectid"],
+                                                  tag.text))
+                    bgames_dataset["bgames_people"].add((current_objectid,
+                                                         tag["objectid"],
+                                                         tag.name))
+                else:
+                    bgames_dataset[pure_join_conns[tag.name][0]].add((tag["objectid"],
+                                                                      tag.text))
+                    bgames_dataset[pure_join_conns[tag.name][1]].add((current_objectid,
+                                                                      tag["objectid"]))
     bgames_dataset["bgames"].append(current_bgame)
 
 
@@ -161,14 +168,13 @@ def gather_data(start_page: int, final_page: int, dataset: dict):
                     update_dataset(descriptions, dataset, boardgame)
             print(f"page #{page}\n"
                   f"accessories: {len(dataset['accessories'])}, {len(dataset['bgames_accessories'])}\n"
-                  f"artists: {len(dataset['artists'])}, {len(dataset['bgames_artists'])}\n"
                   f"categories: {len(dataset['categories'])}, {len(dataset['bgames_categories'])}\n"
-                  f"designers: {len(dataset['designers'])}, {len(dataset['bgames_designers'])}\n"
                   f"expansions: {len(dataset['expansions'])}, {len(dataset['bgames_expansions'])}\n"
                   f"families: {len(dataset['families'])}, {len(dataset['bgames_families'])}\n"
                   f"honors: {len(dataset['honors'])}, {len(dataset['bgames_honors'])}\n"
                   f"integrations: {len(dataset['integrations'])}, {len(dataset['bgames_integrations'])}\n"
                   f"mechanics: {len(dataset['mechanics'])}, {len(dataset['bgames_mechanics'])}\n"
+                  f"people: {len(dataset['people'])}, {len(dataset['bgames_people'])}\n"
                   f"podcasts: {len(dataset['podcasts'])}, {len(dataset['bgames_podcasts'])}\n"
                   f"publishers: {len(dataset['publishers'])}, {len(dataset['bgames_publishers'])}\n"
                   f"subdomains: {len(dataset['subdomains'])}, {len(dataset['bgames_subdomains'])}\n"
@@ -177,70 +183,213 @@ def gather_data(start_page: int, final_page: int, dataset: dict):
             if time.time() - time_loop < 3:
                 time.sleep(3)
             current_page = page + 1
-            print(datetime.datetime.now() - time_start)
+            print("loop time", datetime.datetime.now() - time_start)
     except ConnectionError:
         print("got ConnectionError")
         gather_data(current_page, final_page, dataset)
 
 
+# cleaning all tables in database
+def delete_all_data():
+    new_session = create_db_session()
+    table_list = [dbt.Accessories,
+                  dbt.Bgames,
+                  dbt.BgamesAccessories,
+                  dbt.BgamesCategories,
+                  dbt.BgamesExpansions,
+                  dbt.BgamesFamilies,
+                  dbt.BgamesHonors,
+                  dbt.BgamesIntegrations,
+                  dbt.BgamesMechanics,
+                  dbt.BgamesPeople,
+                  dbt.BgamesPodcasts,
+                  dbt.BgamesPublishers,
+                  dbt.BgamesSubdomains,
+                  dbt.BgamesVersions,
+                  dbt.Categories,
+                  dbt.Expansions,
+                  dbt.Families,
+                  dbt.Honors,
+                  dbt.Integrations,
+                  dbt.Mechanics,
+                  dbt.People,
+                  dbt.Podcasts,
+                  dbt.Publishers,
+                  dbt.Subdomains,
+                  dbt.Versions,
+                  ]
+    for table in table_list:
+        query = new_session.query(table)
+        query.delete()
+    new_session.commit()
+    new_session.close()
+
+
 # start of work
 time_start = datetime.datetime.now()
-
+# creating first page and last page variables
 start = 1
-finish = get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
-
+finish = 2  # get_final_page(creds.BGG_BROWSE_PAGE + "1") + 1
+# creating an empty dataset for data from BGG
 data = {"bgames": list(),
         "accessories": set(),
-        "artists": set(),
         "categories": set(),
-        "designers": set(),
         "expansions": set(),
         "families": set(),
         "honors": set(),
         "integrations": set(),
         "mechanics": set(),
+        "people": set(),
         "podcasts": set(),
         "publishers": set(),
         "subdomains": set(),
         "versions": set(),
         "bgames_accessories": set(),
-        "bgames_artists": set(),
         "bgames_categories": set(),
-        "bgames_designers": set(),
         "bgames_expansions": set(),
         "bgames_families": set(),
         "bgames_honors": set(),
         "bgames_integrations": set(),
         "bgames_mechanics": set(),
+        "bgames_people": set(),
         "bgames_podcasts": set(),
         "bgames_publishers": set(),
         "bgames_subdomains": set(),
         "bgames_versions": set(),
         }
-
+# filling up the dataset
 gather_data(start, finish, data)
 
-print("writing file")
-with open('data.txt', 'w') as file:
-    file.write(str(data))
+# creating lists with class-based instances for future database filling
+accessories, categories, expansions, families, honors, integrations = [], [], [], [], [], []
+mechanics, people, podcasts, publishers, subdomains, versions = [], [], [], [], [], []
+bgames_accessories, bgames_categories, bgames_expansions, bgames_families = [], [], [], []
+bgames_honors, bgames_integrations, bgames_mechanics, bgames_people = [], [], [], []
+bgames_podcasts, bgames_publishers, bgames_subdomains, bgames_versions = [], [], [], []
 
+data_db_pure_connection_dict = {"accessories": [dbt.Accessories, accessories],
+                           "categories": [dbt.Categories, categories],
+                           "expansions": [dbt.Expansions, expansions],
+                           "families": [dbt.Families, families],
+                           "honors": [dbt.Honors, honors],
+                           "integrations": [dbt.Integrations, integrations],
+                           "mechanics": [dbt.Mechanics, mechanics],
+                           "people": [dbt.People, people],
+                           "podcasts": [dbt.Podcasts, podcasts],
+                           "publishers": [dbt.Publishers, publishers],
+                           "subdomains": [dbt.Subdomains, subdomains],
+                           "versions": [dbt.Versions, versions],
+                           }
+for datasource, destination in data_db_pure_connection_dict.items():
+    for position in data[datasource]:
+        destination[1].append(destination[0](position[0], position[1]))
+
+print(len(accessories),
+      len(categories),
+      len(expansions),
+      len(families),
+      len(honors),
+      len(integrations),
+      len(mechanics),
+      len(people),
+      len(podcasts),
+      len(publishers),
+      len(subdomains),
+      len(versions),
+      sep="\n")
+
+# for x in data["bgames_accessories"]:
+#     bgames_accessories.append(dbt.BgamesAccessories(bgame_id=x[0],
+#                                                     accessory_id=x[1]))
+# for x in data["bgames_artists"]:
+#     bgames_artists.append(dbt.BgamesArtists(bgame_id=x[0],
+#                                             artist_id=x[1]))
+# for x in data["bgames_categories"]:
+#     bgames_categories.append(dbt.BgamesCategories(bgame_id=x[0],
+#                                                   category_id=x[1]))
+# for x in data["bgames_designers"]:
+#     bgames_designers.append(dbt.BgamesDesigners(bgame_id=x[0],
+#                                                 designer_id=x[1]))
+# for x in data["bgames_expansions"]:
+#     bgames_expansions.append(dbt.BgamesExpansions(bgame_id=x[0],
+#                                                   expansion_id=x[1]))
+# for x in data["bgames_families"]:
+#     bgames_families.append(dbt.BgamesFamilies(bgame_id=x[0],
+#                                               family_id=x[1]))
+# for x in data["bgames_honors"]:
+#     bgames_honors.append(dbt.BgamesHonors(bgame_id=x[0],
+#                                           honor_id=x[1]))
+# for x in data["bgames_integrations"]:
+#     bgames_integrations.append(dbt.BgamesIntegrations(bgame_id=x[0],
+#                                                       integration_id=x[1]))
+# for x in data["bgames_mechanics"]:
+#     bgames_mechanics.append(dbt.BgamesMechanics(bgame_id=x[0],
+#                                                 mechanic_id=x[1]))
+# for x in data["bgames_podcasts"]:
+#     bgames_podcasts.append(dbt.BgamesPodcasts(bgame_id=x[0],
+#                                               podcast_id=x[1]))
+# for x in data["bgames_publishers"]:
+#     bgames_publishers.append(dbt.BgamesPublishers(bgame_id=x[0],
+#                                                   publisher_id=x[1]))
+# for x in data["bgames_subdomains"]:
+#     bgames_subdomains.append(dbt.BgamesSubdomains(bgame_id=x[0],
+#                                                   subdomain_id=x[1]))
+# for x in data["bgames_versions"]:
+#     bgames_versions.append(dbt.BgamesVersions(bgame_id=x[0],
+#                                               version_id=x[1]))
+
+bgames = []
+for x in data["bgames"]:
+    bgames.append(dbt.Bgames(bgame_id=x["objectid"],
+                             title=x["name"],
+                             yearpublished=x["yearpublished"],
+                             min_players=x["minplayers"],
+                             max_players=x["maxplayers"],
+                             playtime=x["playingtime"],
+                             min_playtime=x["minplaytime"],
+                             max_playtime=x["maxplaytime"],
+                             age=x["age"],
+                             thumbnail=x["thumbnail"],
+                             image=x["image"],
+                             description=x["description"],
+                             rank=x["rank"],
+                             usersrated=x["usersrated"],
+                             average=x["average"],
+                             bayesaverage=x["bayesaverage"]))
+
+# clearing the database
+print("deleting data from database")
+delete_all_data()
+
+print("time to write data to database")
+session = create_db_session()
+versions = set(versions)
+# session.add_all(accessories)
+# session.add_all(artists)
+# session.add_all(categories)
+# session.add_all(designers)
+# session.add_all(expansions)
+# session.add_all(families)
+# session.add_all(honors)
+# session.add_all(integrations)
+# session.add_all(mechanics)
+# session.add_all(podcasts)
+# session.add_all(publishers)
+# session.add_all(subdomains)
+session.add_all(versions)
+# session.add_all(bgames_accessories)
+# session.add_all(bgames_artists)
+# session.add_all(bgames_categories)
+# session.add_all(bgames_designers)
+# session.add_all(bgames_expansions)
+# session.add_all(bgames_families)
+# session.add_all(bgames_honors)
+# session.add_all(bgames_integrations)
+# session.add_all(bgames_mechanics)
+# session.add_all(bgames_podcasts)
+# session.add_all(bgames_publishers)
+# session.add_all(bgames_subdomains)
+# session.add_all(bgames_versions)
+session.add_all(bgames)
+session.commit()
 print(f"spent {datetime.datetime.now() - time_start}")
-
-# cleaning all tables in database
-def delete_all_data():
-    session = create_db_session()
-    table_list = [dbt.Additionals,
-                  dbt.Bgames,
-                  dbt.BgamesAdditionals,
-                  dbt.BgamesPeople,
-                  dbt.BgamesRelatedGames,
-                  dbt.BgamesTags,
-                  dbt.People,
-                  dbt.RelatedGames,
-                  dbt.Tags,
-                  ]
-    for table in table_list:
-        query = session.query(table)
-        query.delete()
-    session.commit()
-    session.close()
